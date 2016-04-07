@@ -6,6 +6,7 @@ use Calculator\Operator\Multiplication;
 use Calculator\Operator\Subtraction;
 
 include("strings.php");
+include("settings.php");
 
 include("Operators/OperatorInterface.php");
 include("Operators/AbstractOperator.php");
@@ -15,9 +16,11 @@ include("Operators/Modular.php");
 include("Operators/Multiplication.php");
 include("Operators/Subtraction.php");
 
+ini_set('display_errors',false);
+
 class Calculator{ //Класс
-    protected $operators = array();
-    protected $expressions = array();
+    protected $operators = [];
+    protected $expressions = [];
 
     /**
      * Считывать оператор
@@ -78,8 +81,7 @@ class Calculator{ //Класс
      */
     protected function calculateOperators(Array $operators)
     {
-        foreach($this->expressions as $index => &$part)
-        {
+        foreach($this->expressions as $index => &$part) {
             if( ! array_key_exists($part, $operators) ) {
                 continue;
             }
@@ -154,20 +156,28 @@ $log = new Plog();
 $colors = new Colors();
 $s = new Strings();
 $calc = new Calculator();
+$st = new Settings();
 $calc->prepareCalc();
 $log->log(Colors::$COLOR_LIGHT_PURPLE.$s->get()["start"]);
-while(true) {
-    $line = new ConsoleQuestion();
-    $prompt = Colors::$COLOR_AQUA . $s->get()["arifm_start"];
-    $log->log($prompt);
-    $answer = $line->readline();
-    if($answer == "quit") exit;
-    $c = $calc->calculate($answer);
-    if($c<=1 and $c>=0) {
-        $log->log(Colors::$COLOR_GREEN . $s->get()["result"] . $answer . " = " . $c);
-    }else if($c<0){
-        $log->log(Colors::$COLOR_RED . $s->get()["small_result"]);
-    }else if($c>0){
-        $log->log(Colors::$COLOR_RED . $s->get()["big_result"]);
-    }
+$void = $st->get()["infinity"];
+if(!$void){
+    $void = $st->get()["loops"];
 }
+    while ($void) {
+        $line = new ConsoleQuestion();
+        $prompt = Colors::$COLOR_AQUA . $s->get()["arifm_start"];
+        $log->log($prompt);
+        $answer = $line->readline();
+        if ($answer == "quit") exit;
+        if ($answer == "") continue;
+        $c = $calc->calculate($answer);
+        if ($c <= 1 and $c >= 0) {
+            $log->log(Colors::$COLOR_GREEN . $s->get()["result"] . $answer . " = " . $c);
+        } else if ($c < 0) {
+            $log->log(Colors::$COLOR_RED . $s->get()["small_result"]);
+        } else if ($c > 0) {
+            $log->log(Colors::$COLOR_RED . $s->get()["big_result"]);
+        }
+    }
+    sleep($st->get()["pause_before_exit"]);
+
