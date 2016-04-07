@@ -1,109 +1,118 @@
 <?php
 //by xpyctum
+use Calculator\Operator\Division;
+use Calculator\Operator\Modular;
+use Calculator\Operator\Multiplication;
+use Calculator\Operator\Subtraction;
+
 include("strings.php");
+
+include("Operators/OperatorInterface.php");
+include("Operators/AbstractOperator.php");
+include("Operators/Addition.php");
+include("Operators/Division.php");
+include("Operators/Modular.php");
+include("Operators/Multiplication.php");
+include("Operators/Subtraction.php");
+
 class Calculator{ //Класс
-    private $number = [];
-
-    public function plus(){
-        return array_sum($this->getNumbers());
-    }
-
-    public function minus(){
-        $numbers = $this->getNumbers(); $result = $numbers[0];
-        for($x=0;$x<=count($numbers);$x++){
-            if($this->getNextNumber($x+1)){
-                $next = $this->getNextNumber($x+1);
-                $result = $result - $next;
-            }
-        }
-        return $result;
-    }
-
-    public function sqrt(){
-        $numbers = $this->getNumbers(); $result = 0; $last = 0;
-        for($x=0;$x<=count($numbers);$x++){ //Цикл, который будет всё считать.
-            if($x == 0){
-                $result = sqrt($numbers[$x]);
-            }else {
-                if ($this->getNextNumber($x + 1)) {
-                    $next = $this->getNextNumber($x + 1);
-                    $result = sqrt();
-                }
-            }
-        }
-        return $result;
-    }
-
-    public function sqr(){ //Функция - (будет квадрат)
-        $numbers = $this->getNumbers(); $result = 0; $last = 0;
-        for($x=0;$x<=count($numbers);$x++){ //Цикл, который будет всё считать.
-            if($x == 0){
-                $result = $numbers[$x] * $numbers[$x];
-            }else {
-                if ($this->getNextNumber($x + 1)) {
-                    $next = $this->getNextNumber($x + 1);
-                    $result = $result * $next;
-                }
-            }
-        }
-        return $result;
-    }
-
-    public function division(){ //Функция - (будет деление)
-        $numbers = $this->getNumbers(); $result = $numbers[0];
-        for($x=0;$x<=count($numbers);$x++){ //Цикл, который будет всё считать.
-            if($this->getNextNumber($x+1)){
-                $next = $this->getNextNumber($x+1);
-                $result = $result / $next;
-            }
-        }
-        return $result;
-    }
-
-    public function multiplication(){ //Функция - (будет умножение)
-        $numbers = $this->getNumbers(); $result = $numbers[0];
-        for($x=0;$x<=count($numbers);$x++){ //Цикл, который будет всё считать.
-            if($this->getNextNumber($x+1)){
-                $next = $this->getNextNumber($x+1);
-                $result = $result * $next;
-            }
-        }
-        return $result;
-    }
+    protected $operators = array();
+    protected $expressions = array();
 
     /**
-     * Получает следующее значение из массива.
-     * @param $key
-     * @return null|int
+     * Считывать оператор
+     * @param OperatorInterface $operator
      */
-    public function getNextNumber(/* int */ $key){
-        if(isset($this->getNumbers()[$key])){
-            return $this->getNumbers()[$key];
+    public function addOperator(OperatorInterface $operator) {
+        $this->operators[$operator->getToken()] = $operator;
+    }
+    /**
+     * Считывает строку и делаем массив
+     *
+     * @return
+     */
+    public function calculate($input){
+        $this->expressions = explode(' ', $input);
+        $maxPrecedence = $this->getMaxPrecedence();
+        for($precedenceIndex = $maxPrecedence; $precedenceIndex >= 0; $precedenceIndex--) {
+            $precedenceList = $this->getPrecedenceOperatorArray($precedenceIndex);
+            $this->calculateOperators($precedenceList);
         }
-        return null;
+        // The result
+        return $this->expressions[0];
     }
-
     /**
-     * @param array $number
+     * Получить процедуру. Умножение.
+     *
+     * @return int
      */
-    public function setNumbers($number){ //Установить в массив цифры
-        $this->number = $number; //Сохраним цифры в локальную переменную
+    protected function getMaxPrecedence(){
+        $maxPrecedence = 0;
+        foreach($this->operators as $operator) {
+            /** @var $operator OperatorInterface */
+            if($operator->getPrecedence() > $maxPrecedence) {
+                $maxPrecedence = $operator->getPrecedence();
+            }
+        }
+        return $maxPrecedence;
     }
-
     /**
-     * @param $number
-     */
-    public function addNumber($number){ //ДОБАВИТЬ в массив цифру
-        $this->number[] = $number; //Сохраним цифру в локальный массив.
-    }
-
-    /**
+     * Получить массив
+     *
+     * @param  Int
      * @return array
      */
-    public function getNumbers(){ //Получаем номера
-        return $this->number; //Из класса
+    protected function getPrecedenceOperatorArray($precedence){
+        $precedenceOperatorArray = array();
+        foreach($this->operators as $operator) {
+            /** @var $operator OperatorInterface */
+            if($operator->getPrecedence() == $precedence) {
+                $precedenceOperatorArray[$operator->getToken()] = $operator;
+            }
+        }
+        return $precedenceOperatorArray;
+    }
+    /**
+     * Подсчитать операторы
+     * @param array
+     */
+    protected function calculateOperators(Array $operators)
+    {
+        foreach($this->expressions as $index => &$part)
+        {
+            if( ! array_key_exists($part, $operators) ) {
+                continue;
+            }
+            $operator = $operators[$part];
+            // Calculate
+            $base = $this->expressions[$index-1];
+            $subject = $this->expressions[$index+1];
+            /** @var $operator OperatorInterface */
+            $sum = $operator->process($base, $subject);
+            // Replace expression
+            $this->replaceExpressionWithSum($index, $sum);
+        }
+    }
+    /**
+     * Заменить значения
+     *
+     * @param  Int
+     * @param  Float
+     */
+    protected function replaceExpressionWithSum($index, $sum){
+        $this->expressions[$index-1] = null;
+        $this->expressions[$index+1] = null;
+        $this->expressions[$index] = $sum;
+        $this->expressions = array_values(array_filter($this->expressions, 'strlen'));
     }
 
+    public function prepareCalc(){
+        $this->addOperator(new Addition());
+        $this->addOperator(new Division());
+        $this->addOperator(new Modular());
+        $this->addOperator(new Multiplication());
+        $this->addOperator(new Subtraction());
+    }
 
 }
 class Colors extends Calculator{
@@ -145,18 +154,20 @@ $log = new Plog();
 $colors = new Colors();
 $s = new Strings();
 $calc = new Calculator();
+$calc->prepareCalc();
 $log->log(Colors::$COLOR_LIGHT_PURPLE.$s->get()["start"]);
-
-$line = new ConsoleQuestion();
-$prompt = Colors::$COLOR_AQUA.$s->get()["arifm_start"];
-$log->log($prompt);
-$answer = $line->readline();
-$log->log(Colors::$COLOR_GREEN.$s->get()["arifm_header_list"]);
-foreach(explode(",",$answer) as $i){
-    $log->log($s->get()["arifm_list_item"].$i);
-    $calc->addNumber($i);
+while(true) {
+    $line = new ConsoleQuestion();
+    $prompt = Colors::$COLOR_AQUA . $s->get()["arifm_start"];
+    $log->log($prompt);
+    $answer = $line->readline();
+    if($answer == "quit") exit;
+    $c = $calc->calculate($answer);
+    if($c<=1 and $c>=0) {
+        $log->log(Colors::$COLOR_GREEN . $s->get()["result"] . $answer . " = " . $c);
+    }else if($c<0){
+        $log->log(Colors::$COLOR_RED . $s->get()["small_result"]);
+    }else if($c>0){
+        $log->log(Colors::$COLOR_RED . $s->get()["big_result"]);
+    }
 }
-$log->log($calc->sqr());
-
-
-sleep(25);
