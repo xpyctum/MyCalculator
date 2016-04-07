@@ -23,5 +23,7 @@ while (true) {
   $f = fopen( 'php://stdin', 'r' );
   $answer = rtrim(fgets($f)); //Writed by user
   if (strtolower($answer) == "quit") exit; //Quit, if user write "quit" in console
+  fclose($f);
 }
+exit();
 ```
