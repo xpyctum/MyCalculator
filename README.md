@@ -9,9 +9,6 @@ use Calculator\Operator\Modular;
 use Calculator\Operator\Multiplication;
 use Calculator\Operator\Subtraction;
 
-include("strings.php");
-include("settings.php");
-
 include("Operators/OperatorInterface.php");
 include("Operators/AbstractOperator.php");
 include("Operators/Addition.php");
@@ -21,7 +18,6 @@ include("Operators/Multiplication.php");
 include("Operators/Subtraction.php");
 
 $calc = new Calculator();
-$calc->prepareCalc(); //Add Operators
 
 while (true) {
   $f = fopen( 'php://stdin', 'r' );

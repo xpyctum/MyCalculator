@@ -22,6 +22,10 @@ class Calculator{ //Класс
     protected $operators = [];
     protected $expressions = [];
 
+    public function __construct(){
+        $this->prepareCalc();
+    }
+
     /**
      * Считывать оператор
      * @param OperatorInterface $operator
@@ -152,18 +156,21 @@ $colors = new Colors();
 $s = new Strings();
 $calc = new Calculator();
 $st = new Settings();
-$calc->prepareCalc();
 $log->log(Colors::$COLOR_LIGHT_PURPLE.$s->get()["start"]);
 $void = $st->get()["infinity"];
 if(!$void){
     $void = $st->get()["loops"];
+}
+function shutdown($time){
+    sleep($time);
+    exit();
 }
 while ($void) {
     $prompt = Colors::$COLOR_AQUA . $s->get()["arifm_start"];
     $log->log($prompt);
     $f = fopen( 'php://stdin', 'r' );
     $answer = rtrim(fgets($f));
-    if ($answer == "quit") exit;
+    if ($answer == "quit"){ $log->log(Colors::$COLOR_RED."Калькулятор закроется через ".$st->get()["pause_before_exit"]." сек"); shutdown($st->get()["pause_before_exit"]); }
     if ($answer == "") continue;
     $c = $calc->calculate($answer);
     if ($c <= 1 and $c >= 0) {
@@ -175,5 +182,4 @@ while ($void) {
     }
     fclose($f);
 }
-sleep($st->get()["pause_before_exit"]);
 
