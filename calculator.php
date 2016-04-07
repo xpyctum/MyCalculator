@@ -146,11 +146,6 @@ class PLog extends Colors{
         echo $text."\n".Colors::$FORMAT_RESET;
     }
 }
-class ConsoleQuestion extends Calculator{
-    public function readline(){
-        return rtrim(fgets(STDIN));
-    }
-}
 
 $log = new Plog();
 $colors = new Colors();
@@ -163,21 +158,22 @@ $void = $st->get()["infinity"];
 if(!$void){
     $void = $st->get()["loops"];
 }
-    while ($void) {
-        $line = new ConsoleQuestion();
-        $prompt = Colors::$COLOR_AQUA . $s->get()["arifm_start"];
-        $log->log($prompt);
-        $answer = $line->readline();
-        if ($answer == "quit") exit;
-        if ($answer == "") continue;
-        $c = $calc->calculate($answer);
-        if ($c <= 1 and $c >= 0) {
-            $log->log(Colors::$COLOR_GREEN . $s->get()["result"] . $answer . " = " . $c);
-        } else if ($c < 0) {
-            $log->log(Colors::$COLOR_RED . $s->get()["small_result"]);
-        } else if ($c > 0) {
-            $log->log(Colors::$COLOR_RED . $s->get()["big_result"]);
-        }
+while ($void) {
+    $prompt = Colors::$COLOR_AQUA . $s->get()["arifm_start"];
+    $log->log($prompt);
+    $f = fopen( 'php://stdin', 'r' );
+    $answer = rtrim(fgets($f));
+    if ($answer == "quit") exit;
+    if ($answer == "") continue;
+    $c = $calc->calculate($answer);
+    if ($c <= 1 and $c >= 0) {
+        $log->log(Colors::$COLOR_GREEN . $s->get()["result"] . $answer . " = " . $c);
+    } else if ($c < 0) {
+        $log->log(Colors::$COLOR_RED . $s->get()["small_result"]);
+    } else if ($c > 0) {
+        $log->log(Colors::$COLOR_RED . $s->get()["big_result"]);
     }
-    sleep($st->get()["pause_before_exit"]);
+    fclose($f);
+}
+sleep($st->get()["pause_before_exit"]);
 
