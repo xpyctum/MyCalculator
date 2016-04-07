@@ -20,17 +20,12 @@ include("Operators/Modular.php");
 include("Operators/Multiplication.php");
 include("Operators/Subtraction.php");
 
-
-$log = new Plog();
-$colors = new Colors();
-$s = new Strings();
 $calc = new Calculator();
-$st = new Settings();
 $calc->prepareCalc(); //Add Operators
 
 while (true) {
-  $line = new ConsoleQuestion();
-  $answer = $line->readline(); //Writed by user in command line
-  if ($answer == "quit") exit;
+  $f = fopen( 'php://stdin', 'r' );
+  $answer = rtrim(fgets($f)); //Writed by user
+  if (strtolower($answer) == "quit") exit; //Quit, if user write "quit" in console
 }
 ```
