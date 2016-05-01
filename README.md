@@ -23,6 +23,8 @@ while (true) {
   $f = fopen( 'php://stdin', 'r' );
   $answer = rtrim(fgets($f)); //Writed by user
   if (strtolower($answer) == "quit") exit; //Quit, if user write "quit" in console
+  $c = $calc->calculate($answer);
+  echo 'Result: '.$c;
   fclose($f);
 }
 exit();
